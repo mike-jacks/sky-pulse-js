@@ -42,25 +42,37 @@ export default function Home() {
     }
   }, []);
 
-  const storeLocationData = useCallback(async (coords: { lat: number; lng: number }) => {
-    const data = await fetchLocationData(coords);
-    setLocationData(data);
-    if (data && data.properties) {
-      setWeatherDataUrl(data.properties.forecast);
-    }
-  }, [fetchLocationData]);
+  const storeLocationData = useCallback(
+    async (coords: { lat: number; lng: number }) => {
+      const data = await fetchLocationData(coords);
+      setLocationData(data);
+      if (data && data.properties) {
+        setWeatherDataUrl(data.properties.forecast);
+      } else {
+        setWeatherDataUrl("");
+      }
+    },
+    [fetchLocationData]
+  );
 
-  const storeForecastData = useCallback(async (coords: { lat: number; lng: number }) => {
-    const data = await fetchWeatherData(weatherDataUrl);
-    setWeatherData(data);
-    if (data && data.properties) {
-      setForecast(data.properties.periods);
-    }
-  }, [fetchWeatherData, weatherDataUrl]);
+  const storeForecastData = useCallback(
+    async (coords: { lat: number; lng: number }) => {
+      const data = await fetchWeatherData(weatherDataUrl);
+      setWeatherData(data);
+      if (data && data.properties) {
+        setForecast(data.properties.periods);
+      }
+    },
+    [fetchWeatherData, weatherDataUrl]
+  );
 
   useEffect(() => {
-    storeLocationData(coordinates);
-  }, [coordinates, storeLocationData]);
+    if (locationData && locationData.status === 404) {
+      setCity("");
+      setState("");
+      setWeatherData(null);
+    }
+  }, [locationData]);
 
   useEffect(() => {
     if (locationData && locationData.properties) {
@@ -96,56 +108,130 @@ export default function Home() {
         {city ? city + ", " : "Out of United States"}
         {state ? state : ""}
       </h1>
-      <div className="flex flex-row gap-5">
-        <div className="rounded-lg shadow-xl border-red-400 p-5 bg-slate-800">
-          <h1>Today&apos;s Forecast</h1>
+      <div className="flex flex-col gap-5 justify-center w-full">
+        {/* Daily Forecast */}
+        <div className="rounded-lg shadow-xl border-yellow-600 p-5 bg-gray-800 border-2 flex flex-col mb-4 overflow-x-auto">
           {forecast
             .filter((f) => f.number === 1)
-            .map((period) => (
-              <div key={period.number}>
-                <table>
-                  <tbody>
-                    <tr>
-                      <th>{period.name}</th>
-                    </tr>
-                    <tr>
-                      <td>{period.shortForecast}</td>
-                    </tr>
-                    <tr>
-                      <td>{period.temperature}&deg;{period.temperatureUnit}</td>
-                    </tr>
-                    <tr>
-                      <td>{period.detailedForecast}</td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <Image src={period.icon} alt={`${period.shortForecast} icon`} width="100" height="100" />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            ))}
+            .map((period) => {
+              return (
+                <h2 key={period.number} className="text-lg font-bold text-gray-200 mb-2">
+                  {period.isDaytime ? "Daily Forecast" : "Nightly Forecast"}
+                </h2>
+              );
+            })}
+          <table className="min-w-full divide-y divide-gray-200 text-center">
+            <thead className="bg-gray-700">
+              <tr>
+                {forecast
+                  .filter((f) => f.number % 2 === 1)
+                  .map((period) => {
+                    const date = new Date(period.startTime);
+                    const monthShort = new Intl.DateTimeFormat("en-US", { month: "short" }).format(date);
+                    const day = date.getUTCDate();
+                    const year = date.getUTCFullYear();
+                    return (
+                      <th key={period.number} className="px-6 py-3 text-xs font-medium text-gray-200 uppercase tracking-wider">
+                        {monthShort} {day}, {year}
+                      </th>
+                    );
+                  })}
+              </tr>
+            </thead>
+            <tbody className="bg-gray-800 divide-y divide-gray-700">
+              <tr>
+                {forecast
+                  .filter((f) => f.number % 2 === 1)
+                  .map((period) => (
+                    <td key={period.number} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">
+                      {period.name}
+                    </td>
+                  ))}
+              </tr>
+              <tr>
+                {forecast
+                  .filter((f) => f.number % 2 === 1)
+                  .map((period) => (
+                    <td key={period.number} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">
+                      {period.temperature}&deg;{period.temperatureUnit}
+                    </td>
+                  ))}
+              </tr>
+              <tr>
+                {forecast
+                  .filter((f) => f.number % 2 === 1)
+                  .map((period) => (
+                    <td key={period.number} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">
+                      <div className="flex justify-center items-center">
+                        <Image className="rounded-full" src={period.icon} alt={`${period.name} image`} width="40" height="40" />
+                      </div>
+                    </td>
+                  ))}
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div className="rounded-lg shadow-xl border-red-400 p-5 bg-slate-800">
-          <h1>Daily Forecast</h1>
+        {/* Nightly Forecast */}
+        <div className="rounded-lg shadow-xl border-yellow-600 p-5 bg-gray-800 border-2 flex flex-col overflow-x-auto">
           {forecast
-            .filter((f) => f.number % 2 === 1)
-            .map((period) => (
-              <div key={period.number}>
-                <p>{period.name}</p>
-              </div>
-            ))}
-        </div>
-        <div className="rounded-lg shadow-xl border-red-400 p-5 bg-slate-800">
-          <h1>Nightly Forecast</h1>
-          {forecast
-            .filter((f) => f.number % 2 === 0)
-            .map((period) => (
-              <div key={period.number}>
-                <p>{period.name}</p>
-              </div>
-            ))}
+            .filter((f) => f.number === 2)
+            .map((period) => {
+              return (
+                <h2 key={period.number} className="text-lg font-bold text-gray-200 mb-2">
+                  {period.isDaytime ? "Daily Forecast" : "Nightly Forecast"}
+                </h2>
+              );
+            })}
+          <table className="min-w-full divide-y divide-gray-200 text-center">
+            <thead className="bg-gray-700">
+              <tr>
+                {forecast
+                  .filter((f) => f.number % 2 === 0)
+                  .map((period) => {
+                    const date = new Date(period.startTime);
+                    const monthShort = new Intl.DateTimeFormat("en-US", { month: "short" }).format(date);
+                    const day = date.getUTCDate();
+                    const year = date.getUTCFullYear();
+                    return (
+                      <th key={period.number} className="px-6 py-3 text-xs font-medium text-gray-200 uppercase tracking-wider">
+                        {monthShort} {day}, {year}
+                      </th>
+                    );
+                  })}
+              </tr>
+            </thead>
+            <tbody className="bg-gray-800 divide-y divide-gray-700">
+              <tr>
+                {forecast
+                  .filter((f) => f.number % 2 === 0)
+                  .map((period) => (
+                    <td key={period.number} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">
+                      {period.name}
+                    </td>
+                  ))}
+              </tr>
+              <tr>
+                {forecast
+                  .filter((f) => f.number % 2 === 0)
+                  .map((period) => (
+                    <td key={period.number} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">
+                      {period.temperature}&deg;{period.temperatureUnit}
+                    </td>
+                  ))}
+              </tr>
+              <tr>
+                {forecast
+                  .filter((f) => f.number % 2 === 0)
+                  .map((period) => (
+                    <td key={period.number} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">
+                      <div className="flex justify-center items-center">
+                        <Image className="rounded-full" src={period.icon} alt={`${period.name} image`} width="40" height="40" />
+                      </div>
+                    </td>
+                  ))}
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
