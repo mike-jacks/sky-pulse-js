@@ -1,73 +1,56 @@
 // components/GoogleMapComponent.tsx
 
-import React, { useState, useRef, useCallback, useEffect} from 'react';
-import { GoogleMap, useLoadScript } from '@react-google-maps/api';
+import { GoogleMap, useLoadScript } from "@react-google-maps/api";
+import React, { useCallback, useRef } from "react";
+import { GoogleMapComponentProps } from "./types";
 
 const containerStyle = {
-  width: '50vw',
-  height: '50vh',
+  width: "50vw",
+  height: "50vh",
 };
 
-const stGeorgeCenter = {
-  lat: 37.1,  // Latitude for St. George, Utah
-  lng: -113.6, // Longitude for St. George, Utah
-};
-
-const GoogleMapComponent: React.FC<{ lat: number; lng: number; }> = ( coordinates ) => {
+const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({ coordinates, setCoordinates, storeWeatherData, storeForecastData }) => {
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY!,
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
   });
 
-  const getInitialCenter = (): { lat: number; lng: number } | undefined=> {
-    const storedCenter = localStorage.getItem("mapCenter");
-    console.log(storedCenter);
-    if (storedCenter) {
-      try {
-        console.log(JSON.parse(storedCenter))
-        return JSON.parse(storedCenter);
-      } catch (error) {
-        console.error("Error parsing map center from local storage.", error);
-      }
-    }
-  };
-
-
   const mapRef = useRef<google.maps.Map | null>(null);
-  const [currentCenter, setCurrentCenter] = useState<{lat: number, lng: number} | undefined>(getInitialCenter());
 
-
-  const onLoad = useCallback((map: google.maps.Map) => {
-    mapRef.current = map;
-  }, []);
-
-  const onCenterChanged = () => {
-    if (mapRef.current) {
-      const newCenter = mapRef.current.getCenter();
-      if (newCenter) {
-        setCurrentCenter({
-          lat: newCenter.lat(),
-          lng: newCenter.lng(),
-        });
+  const onLoad = useCallback(
+    (map: google.maps.Map) => {
+      mapRef.current = map;
+      if (localStorage.getItem("mapCenter")) {
+        setCoordinates(JSON.parse(localStorage.getItem("mapCenter")!));
       }
+    },
+    [setCoordinates]
+  );
+
+  const onClick = (event: google.maps.MapMouseEvent) => {
+    if (event.latLng) {
+      const newCoordinates = {
+        lat: event.latLng.lat(),
+        lng: event.latLng.lng(),
+      };
+      setCoordinates(newCoordinates);
+      storeWeatherData(newCoordinates); // Pass the new coordinates
+      storeForecastData(newCoordinates); // Pass the new coordinates
+      localStorage.setItem("mapCenter", JSON.stringify(newCoordinates));
     }
   };
-
-  const handleDragEnd = () => {
-    localStorage.setItem("mapCenter", JSON.stringify(currentCenter));
-  }
 
   if (loadError) return <div>Error loading maps</div>;
   if (!isLoaded) return <div>Loading maps...</div>;
 
   return (
     <div>
-      <div>Current Center Coordinates: {currentCenter ? `{ lat: ${currentCenter.lat}, lng: ${currentCenter.lng} }` : 'Loading...'}</div>
+      <div>Current Center Coordinates: {coordinates ? `{ lat: ${coordinates.lat}, lng: ${coordinates.lng} }` : "Loading..."}</div>
       <GoogleMap
         mapContainerStyle={containerStyle}
-        center={stGeorgeCenter}
+        center={localStorage.getItem("mapCenter") ? JSON.parse(localStorage.getItem("mapCenter")!) : coordinates}
         zoom={11}
         onLoad={onLoad}
-        onCenterChanged={onCenterChanged}
+        onClick={onClick} // Add onClick event handler
       />
     </div>
   );
