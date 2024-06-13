@@ -98,7 +98,13 @@ const ForecastBarChart: React.FC<ForecastProps> = ({ forecast, isDay }) => {
     },
   };
 
-  return <Bar ref={chartRef} data={data} options={options} />;
+  return (
+  <div className="grid grid-cols-6 grid-rows-1 max-h-96">
+    <div className="col-start-2 col-span-4">
+    <Bar ref={chartRef} data={data} options={options} />
+    </div>
+  </div>
+  )
 };
 
 export default ForecastBarChart;

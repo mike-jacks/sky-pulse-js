@@ -5,8 +5,8 @@ import React, { useCallback, useRef } from "react";
 import { GoogleMapComponentProps } from "./types";
 
 const containerStyle = {
-  width: "50vw",
-  height: "50vh",
+  width: "40vw",
+  height: "30vh",
 };
 
 const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({ coordinates, setCoordinates, storeWeatherData, storeForecastData }) => {
@@ -43,8 +43,8 @@ const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({ coordinates, se
   if (!isLoaded) return <div>Loading maps...</div>;
 
   return (
-    <div>
-      <div>Current Center Coordinates: {coordinates ? `{ lat: ${coordinates.lat}, lng: ${coordinates.lng} }` : "Loading..."}</div>
+    <div className="rounded-xl overflow-hidden">
+      {/* <div>Current Center Coordinates: {coordinates ? `{ lat: ${coordinates.lat}, lng: ${coordinates.lng} }` : "Loading..."}</div> */}
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={localStorage.getItem("mapCenter") ? JSON.parse(localStorage.getItem("mapCenter")!) : coordinates}

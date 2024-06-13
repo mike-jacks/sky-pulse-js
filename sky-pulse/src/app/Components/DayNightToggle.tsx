@@ -13,7 +13,7 @@ const DayNightToggle: React.FC<DayNightToggleProps> = ({isDay, setIsDay}) => {
       };
 
   return (
-    <div className="flex items-center justify-center mt-5">
+    <div className="flex items-end justify-end mt-5">
       <label className="swap swap-rotate">
         <input type="checkbox" onChange={handleToggle} checked={isDay} />
         <div className="swap-on flex items-center space-x-2">

@@ -11,6 +11,7 @@ export type GoogleMapComponentProps = {
   }
 
   export type ForecastTableProps = {
-    forecast: any[]
-    zeroOrOneValue: number
+    forecast: any[];
+    zeroOrOneValue: number;
+    isDay: boolean;
   }

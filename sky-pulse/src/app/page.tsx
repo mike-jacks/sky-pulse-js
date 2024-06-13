@@ -108,28 +108,26 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center">
+      <div className="flex flex-row gap-10 content-start">
       <GoogleMapComponent
         coordinates={coordinates}
         setCoordinates={setCoordinates}
         storeWeatherData={storeLocationData}
         storeForecastData={storeForecastData}
       />
+        <DayNightToggle isDay={isDay} setIsDay={setIsDay}/>
+      </div>
       <h1 className="font-bold">
-        {city ? city + ", " : "Out of United States"}
+        {city ? city + ", " : "Select a location in the USA"}
         {state ? state : ""}
       </h1>
       <div className="flex flex-col gap-10 justify-center w-full">
-        <DayNightToggle isDay={isDay} setIsDay={setIsDay}/>
-        
-        {/* Chart */}
+        {state && 
+        <>
         <ForecastBarChart forecast={forecast} isDay={isDay}/>
-        
-        {/* Daily Forecast */}
-        <ForecastTable forecast={forecast} zeroOrOneValue={1} />
-
-
-        {/* Nightly Forecast */}
-        <ForecastTable forecast={forecast} zeroOrOneValue={0} />
+        <ForecastTable forecast={forecast} zeroOrOneValue={1} isDay={isDay} />
+        </>
+        }
       </div>
     </div>
   );
