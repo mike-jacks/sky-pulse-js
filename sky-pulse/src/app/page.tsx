@@ -1,7 +1,10 @@
 "use client";
-import Image from "next/image";
+import { BarChart } from "@mui/x-charts";
 import { useCallback, useEffect, useState } from "react";
+import ForecastTable from "./Components/ForecastTable";
 import GoogleMapComponent from "./Components/GoogleMapComponent";
+import ForecastBarChart from "./Components/ForecastBarChart";
+import DayNightToggle from "./Components/DayNightToggle";
 
 export default function Home() {
   const stGeorgeCenter = {
@@ -96,6 +99,13 @@ export default function Home() {
     console.log(forecast);
   }, [forecast]);
 
+  const [isDay, setIsDay] = useState(true);
+
+  useEffect(() => {
+    console.log(isDay)
+  }, [isDay])
+
+
   return (
     <div className="flex flex-col items-center">
       <GoogleMapComponent
@@ -108,131 +118,18 @@ export default function Home() {
         {city ? city + ", " : "Out of United States"}
         {state ? state : ""}
       </h1>
-      <div className="flex flex-col gap-5 justify-center w-full">
+      <div className="flex flex-col gap-10 justify-center w-full">
+        <DayNightToggle isDay={isDay} setIsDay={setIsDay}/>
+        
+        {/* Chart */}
+        <ForecastBarChart forecast={forecast} isDay={isDay}/>
+        
         {/* Daily Forecast */}
-        <div className="rounded-lg shadow-xl border-yellow-600 p-5 bg-gray-800 border-2 flex flex-col mb-4 overflow-x-auto">
-          {forecast
-            .filter((f) => f.number === 1)
-            .map((period) => {
-              return (
-                <h2 key={period.number} className="text-lg font-bold text-gray-200 mb-2">
-                  {period.isDaytime ? "Daily Forecast" : "Nightly Forecast"}
-                </h2>
-              );
-            })}
-          <table className="min-w-full divide-y divide-gray-200 text-center">
-            <thead className="bg-gray-700">
-              <tr>
-                {forecast
-                  .filter((f) => f.number % 2 === 1)
-                  .map((period) => {
-                    const date = new Date(period.startTime);
-                    const monthShort = new Intl.DateTimeFormat("en-US", { month: "short" }).format(date);
-                    const day = date.getUTCDate();
-                    const year = date.getUTCFullYear();
-                    return (
-                      <th key={period.number} className="px-6 py-3 text-xs font-medium text-gray-200 uppercase tracking-wider">
-                        {monthShort} {day}, {year}
-                      </th>
-                    );
-                  })}
-              </tr>
-            </thead>
-            <tbody className="bg-gray-800 divide-y divide-gray-700">
-              <tr>
-                {forecast
-                  .filter((f) => f.number % 2 === 1)
-                  .map((period) => (
-                    <td key={period.number} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">
-                      {period.name}
-                    </td>
-                  ))}
-              </tr>
-              <tr>
-                {forecast
-                  .filter((f) => f.number % 2 === 1)
-                  .map((period) => (
-                    <td key={period.number} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">
-                      {period.temperature}&deg;{period.temperatureUnit}
-                    </td>
-                  ))}
-              </tr>
-              <tr>
-                {forecast
-                  .filter((f) => f.number % 2 === 1)
-                  .map((period) => (
-                    <td key={period.number} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">
-                      <div className="flex justify-center items-center">
-                        <Image className="rounded-full" src={period.icon} alt={`${period.name} image`} width="40" height="40" />
-                      </div>
-                    </td>
-                  ))}
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <ForecastTable forecast={forecast} zeroOrOneValue={1} />
+
+
         {/* Nightly Forecast */}
-        <div className="rounded-lg shadow-xl border-yellow-600 p-5 bg-gray-800 border-2 flex flex-col overflow-x-auto">
-          {forecast
-            .filter((f) => f.number === 2)
-            .map((period) => {
-              return (
-                <h2 key={period.number} className="text-lg font-bold text-gray-200 mb-2">
-                  {period.isDaytime ? "Daily Forecast" : "Nightly Forecast"}
-                </h2>
-              );
-            })}
-          <table className="min-w-full divide-y divide-gray-200 text-center">
-            <thead className="bg-gray-700">
-              <tr>
-                {forecast
-                  .filter((f) => f.number % 2 === 0)
-                  .map((period) => {
-                    const date = new Date(period.startTime);
-                    const monthShort = new Intl.DateTimeFormat("en-US", { month: "short" }).format(date);
-                    const day = date.getUTCDate();
-                    const year = date.getUTCFullYear();
-                    return (
-                      <th key={period.number} className="px-6 py-3 text-xs font-medium text-gray-200 uppercase tracking-wider">
-                        {monthShort} {day}, {year}
-                      </th>
-                    );
-                  })}
-              </tr>
-            </thead>
-            <tbody className="bg-gray-800 divide-y divide-gray-700">
-              <tr>
-                {forecast
-                  .filter((f) => f.number % 2 === 0)
-                  .map((period) => (
-                    <td key={period.number} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">
-                      {period.name}
-                    </td>
-                  ))}
-              </tr>
-              <tr>
-                {forecast
-                  .filter((f) => f.number % 2 === 0)
-                  .map((period) => (
-                    <td key={period.number} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">
-                      {period.temperature}&deg;{period.temperatureUnit}
-                    </td>
-                  ))}
-              </tr>
-              <tr>
-                {forecast
-                  .filter((f) => f.number % 2 === 0)
-                  .map((period) => (
-                    <td key={period.number} className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">
-                      <div className="flex justify-center items-center">
-                        <Image className="rounded-full" src={period.icon} alt={`${period.name} image`} width="40" height="40" />
-                      </div>
-                    </td>
-                  ))}
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <ForecastTable forecast={forecast} zeroOrOneValue={0} />
       </div>
     </div>
   );

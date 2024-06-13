@@ -9,3 +9,8 @@ export type GoogleMapComponentProps = {
     storeWeatherData: (coordinates: Coordinates) => void;
     storeForecastData: (coordinates: Coordinates) => void;
   }
+
+  export type ForecastTableProps = {
+    forecast: any[]
+    zeroOrOneValue: number
+  }
