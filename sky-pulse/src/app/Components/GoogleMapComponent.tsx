@@ -9,7 +9,7 @@ const containerStyle = {
   height: "30vh",
 };
 
-const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({ coordinates, setCoordinates, storeWeatherData, storeForecastData }) => {
+const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({ coordinates, setCoordinates, storeLocationData, storeForecastData }) => {
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
   });
@@ -33,8 +33,8 @@ const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({ coordinates, se
         lng: event.latLng.lng(),
       };
       setCoordinates(newCoordinates);
-      storeWeatherData(newCoordinates); // Pass the new coordinates
-      storeForecastData(newCoordinates); // Pass the new coordinates
+      storeLocationData(newCoordinates); // Pass the new coordinates
+      storeForecastData(); // Pass the new coordinates
       localStorage.setItem("mapCenter", JSON.stringify(newCoordinates));
     }
   };

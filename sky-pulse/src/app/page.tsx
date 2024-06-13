@@ -1,10 +1,9 @@
 "use client";
-import { BarChart } from "@mui/x-charts";
 import { useCallback, useEffect, useState } from "react";
+import DayNightToggle from "./Components/DayNightToggle";
+import ForecastBarChart from "./Components/ForecastBarChart";
 import ForecastTable from "./Components/ForecastTable";
 import GoogleMapComponent from "./Components/GoogleMapComponent";
-import ForecastBarChart from "./Components/ForecastBarChart";
-import DayNightToggle from "./Components/DayNightToggle";
 
 export default function Home() {
   const stGeorgeCenter = {
@@ -14,15 +13,18 @@ export default function Home() {
 
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number }>(stGeorgeCenter);
   const [locationData, setLocationData] = useState<any>(null);
-  const [weatherDataUrl, setWeatherDataUrl] = useState<string>("");
-  const [weatherData, setWeatherData] = useState<any>(null);
+  const [forecastUrl, setForecastUrl] = useState<string>("");
+  const [forecastHourlyUrl, setForecastHourlyUrl] = useState<string>("");
+  const [weatherDataForForecast, setWeatherDataForForecast] = useState<any>(null);
+  const [weatherDataForForecastHourly, setWeatherDataForForecastHourly] = useState<any>(null);
 
   const [relativeLocation, setRelativeLocation] = useState<any>(null);
   const [city, setCity] = useState<string>("");
   const [state, setState] = useState<string>("");
   const [timeZone, setTimeZone] = useState<string>("");
 
-  const [forecast, setForecast] = useState<any[]>([]);
+  const [forecastData, setForecastData] = useState<any[]>([]);
+  const [forecastHourlyData, setForecastHourlyData] = useState<any[]>([]);
 
   const fetchLocationData = useCallback(async (coords: { lat: number; lng: number }) => {
     try {
@@ -33,6 +35,14 @@ export default function Home() {
       console.log(error);
     }
   }, []);
+
+  const storeLocationData = useCallback(
+    async (coords: { lat: number; lng: number }) => {
+      const data = await fetchLocationData(coords);
+      setLocationData(data);
+    },
+    [fetchLocationData]
+  );
 
   const fetchWeatherData = useCallback(async (url: string) => {
     if (!url) return;
@@ -45,35 +55,37 @@ export default function Home() {
     }
   }, []);
 
-  const storeLocationData = useCallback(
-    async (coords: { lat: number; lng: number }) => {
-      const data = await fetchLocationData(coords);
-      setLocationData(data);
-      if (data && data.properties) {
-        setWeatherDataUrl(data.properties.forecast);
-      } else {
-        setWeatherDataUrl("");
-      }
-    },
-    [fetchLocationData]
-  );
+  useEffect(() => {
+    if (locationData && locationData.properties) {
+      storeForecastUrls();
+    }
+  }, [locationData]);
 
-  const storeForecastData = useCallback(
-    async (coords: { lat: number; lng: number }) => {
-      const data = await fetchWeatherData(weatherDataUrl);
-      setWeatherData(data);
-      if (data && data.properties) {
-        setForecast(data.properties.periods);
-      }
-    },
-    [fetchWeatherData, weatherDataUrl]
-  );
+  const storeForecastUrls = useCallback(async () => {
+    if (locationData && locationData.properties) {
+      setForecastUrl(locationData.properties.forecast);
+      setForecastHourlyUrl(locationData.properties.forecastHourly);
+    }
+  }, [locationData]);
+
+  const storeForecastData = useCallback(async () => {
+    const forecastData = await fetchWeatherData(forecastUrl);
+    const forecastHourlyData = await fetchWeatherData(forecastHourlyUrl);
+    setWeatherDataForForecast(forecastData);
+    setWeatherDataForForecastHourly(forecastHourlyData);
+    if (forecastData && forecastData.properties) {
+      setForecastData(forecastData.properties.periods);
+    }
+    if (forecastHourlyData && forecastHourlyData.properties) {
+      setForecastHourlyData(forecastHourlyData.properties.periods);
+    }
+  }, [fetchWeatherData, forecastUrl]);
 
   useEffect(() => {
     if (locationData && locationData.status === 404) {
       setCity("");
       setState("");
-      setWeatherData(null);
+      setWeatherDataForForecast(null);
     }
   }, [locationData]);
 
@@ -90,44 +102,45 @@ export default function Home() {
   }, [locationData]);
 
   useEffect(() => {
-    if (weatherDataUrl) {
-      storeForecastData(coordinates);
+    if (forecastUrl) {
+      storeForecastData();
     }
-  }, [weatherDataUrl, storeForecastData, coordinates]);
+  }, [forecastUrl]);
 
   useEffect(() => {
-    console.log(forecast);
-  }, [forecast]);
+    console.log(forecastData);
+  }, [forecastData]);
 
   const [isDay, setIsDay] = useState(true);
 
   useEffect(() => {
-    console.log(isDay)
-  }, [isDay])
-
+    console.log(isDay);
+  }, [isDay]);
 
   return (
     <div className="flex flex-col items-center">
       <div className="flex flex-row gap-10 content-start">
-      <GoogleMapComponent
-        coordinates={coordinates}
-        setCoordinates={setCoordinates}
-        storeWeatherData={storeLocationData}
-        storeForecastData={storeForecastData}
-      />
-        <DayNightToggle isDay={isDay} setIsDay={setIsDay}/>
+        <GoogleMapComponent
+          coordinates={coordinates}
+          setCoordinates={setCoordinates}
+          storeLocationData={storeLocationData}
+          storeForecastData={storeForecastData}
+        />
+        <DayNightToggle isDay={isDay} setIsDay={setIsDay} />
       </div>
       <h1 className="font-bold">
         {city ? city + ", " : "Select a location in the USA"}
         {state ? state : ""}
       </h1>
       <div className="flex flex-col gap-10 justify-center w-full">
-        {state && 
-        <>
-        <ForecastBarChart forecast={forecast} isDay={isDay}/>
-        <ForecastTable forecast={forecast} zeroOrOneValue={1} isDay={isDay} />
-        </>
-        }
+        {state && (
+          <>
+            <ForecastBarChart forecast={forecastData} isDay={isDay} />
+            <ForecastTable forecast={forecastData} zeroOrOneValue={1} isDay={isDay} />
+            <ForecastBarChart forecast={forecastHourlyData} isDay={isDay} />
+            <ForecastTable forecast={forecastHourlyData} zeroOrOneValue={1} isDay={isDay} />
+          </>
+        )}
       </div>
     </div>
   );
