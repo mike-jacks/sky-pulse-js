@@ -51,6 +51,7 @@ export default function Home() {
       const data = await response.json();
       return data;
     } catch (error) {
+      console.log("This error is happening");
       console.log(error);
     }
   }, []);
@@ -79,7 +80,7 @@ export default function Home() {
     if (forecastHourlyData && forecastHourlyData.properties) {
       setForecastHourlyData(forecastHourlyData.properties.periods);
     }
-  }, [fetchWeatherData, forecastUrl]);
+  }, [forecastUrl]);
 
   useEffect(() => {
     if (locationData && locationData.status === 404) {
@@ -137,8 +138,7 @@ export default function Home() {
           <>
             <ForecastBarChart forecast={forecastData} isDay={isDay} />
             <ForecastTable forecast={forecastData} zeroOrOneValue={1} isDay={isDay} />
-            <ForecastBarChart forecast={forecastHourlyData} isDay={isDay} />
-            <ForecastTable forecast={forecastHourlyData} zeroOrOneValue={1} isDay={isDay} />
+
           </>
         )}
       </div>
