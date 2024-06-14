@@ -13,18 +13,25 @@ export default function Home() {
 
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number }>(stGeorgeCenter);
   const [locationData, setLocationData] = useState<any>(null);
+  const [forecastData, setForecastData] = useState<any>(null);
+  const [forecastHourlyData, setForecastHourlyData] = useState<any>(null);
+  const [forecastZoneData, setForecastZoneData] = useState<any>(null);
+
   const [forecastUrl, setForecastUrl] = useState<string>("");
   const [forecastHourlyUrl, setForecastHourlyUrl] = useState<string>("");
-  const [weatherDataForForecast, setWeatherDataForForecast] = useState<any>(null);
-  const [weatherDataForForecastHourly, setWeatherDataForForecastHourly] = useState<any>(null);
+  const [forecastZoneUrl, setForecastZoneUrl] = useState<string>("");
+
+  const [forecastZoneGeometryCoordinates, setForecastZoneGeometryCoordinates] = useState<{ lat: number; lng: number }[]>([{ lat: 0, lng: 0 }]);
 
   const [relativeLocation, setRelativeLocation] = useState<any>(null);
   const [city, setCity] = useState<string>("");
   const [state, setState] = useState<string>("");
   const [timeZone, setTimeZone] = useState<string>("");
 
-  const [forecastData, setForecastData] = useState<any[]>([]);
-  const [forecastHourlyData, setForecastHourlyData] = useState<any[]>([]);
+  const [forecastArray, setForecastArray] = useState<any[]>([]);
+  const [forecastHourlyArray, setForecastHourlyArray] = useState<any[]>([]);
+
+  const [isDay, setIsDay] = useState(true);
 
   const fetchLocationData = useCallback(async (coords: { lat: number; lng: number }) => {
     try {
@@ -36,62 +43,84 @@ export default function Home() {
     }
   }, []);
 
-  const storeLocationData = useCallback(
-    async (coords: { lat: number; lng: number }) => {
-      const data = await fetchLocationData(coords);
-      setLocationData(data);
-    },
-    [fetchLocationData]
-  );
-
-  const fetchWeatherData = useCallback(async (url: string) => {
+  const fetchDataFromUrl = useCallback(async (url: string) => {
     if (!url) return;
     try {
       const response = await fetch(url);
       const data = await response.json();
-      return data;
+      return await data;
     } catch (error) {
-      console.log("This error is happening");
       console.log(error);
     }
   }, []);
 
-  useEffect(() => {
-    if (locationData && locationData.properties) {
-      storeForecastUrls();
-    }
-  }, [locationData]);
+  const storeLocationData = async (coords: { lat: number; lng: number }) => {
+    const data = await fetchLocationData(coords);
+    setLocationData(data);
+    return locationData;
+  };
 
-  const storeForecastUrls = useCallback(async () => {
-    if (locationData && locationData.properties) {
-      setForecastUrl(locationData.properties.forecast);
-      setForecastHourlyUrl(locationData.properties.forecastHourly);
+  const storeUrls = async (locData: any) => {
+    if (locData && locData.properties) {
+      setForecastUrl(locData.properties.forecast);
+      setForecastHourlyUrl(locData.properties.forecastHourly);
+      setForecastZoneUrl(locData.properties.forecastZone);
     }
-  }, [locationData]);
+  };
 
-  const storeForecastData = useCallback(async () => {
-    const forecastData = await fetchWeatherData(forecastUrl);
-    const forecastHourlyData = await fetchWeatherData(forecastHourlyUrl);
-    setWeatherDataForForecast(forecastData);
-    setWeatherDataForForecastHourly(forecastHourlyData);
+  const storeForecastData = async (forecastUrl: string) => {
+    const rawForecastData = await fetchDataFromUrl(forecastUrl);
+    setForecastData(rawForecastData);
+  };
+
+  const storeForecastHourlyData = async (forecastHourlyUrl: string) => {
+    const rawForecastHourlyData = await fetchDataFromUrl(forecastHourlyUrl);
+    setForecastHourlyData(rawForecastHourlyData);
+  }
+
+  const storeForecastZoneData = async (forecastZoneUrl: string) => {
+    const rawForecastZoneData = await fetchDataFromUrl(forecastZoneUrl);
+    setForecastZoneData(rawForecastZoneData);
+  }
+
+  const storeForecastArray = (forecastData: { properties: any }) => {
     if (forecastData && forecastData.properties) {
-      setForecastData(forecastData.properties.periods);
+      setForecastArray(forecastData.properties.periods);
     }
-    if (forecastHourlyData && forecastHourlyData.properties) {
-      setForecastHourlyData(forecastHourlyData.properties.periods);
-    }
-  }, [forecastUrl]);
+  }
 
+  const storeForecastHourlyArray = (forecastData: {properties: any }) => {
+    if (forecastData && forecastData.properties) {
+      setForecastHourlyArray(forecastData.properties.periods);
+    }
+  }
+
+  const storeForecastZoneGeometryCoordinatesArray = (forecastZoneData: {geometry: any}) => {
+      if (forecastZoneData && forecastZoneData.geometry) {
+        const geometryCoordinatesAsArray: number[][] = forecastZoneData.geometry.coordinates[0];
+        const geometryCoordinatesAsArrayObj: { lat: number; lng: number }[] = geometryCoordinatesAsArray.map((coordinate: number[]) => ({
+          lat: coordinate[1],
+          lng: coordinate[0],
+        }));
+        setForecastZoneGeometryCoordinates(geometryCoordinatesAsArrayObj);
+      } else {
+        console.log("weatherDataForForecast not available.");
+      }
+    }
+
+
+
+  // Store Location Data
   useEffect(() => {
-    if (locationData && locationData.status === 404) {
-      setCity("");
-      setState("");
-      setWeatherDataForForecast(null);
+    if (coordinates) {
+      storeLocationData(coordinates);
     }
-  }, [locationData]);
+  }, [coordinates]);
 
+  // Store URL information
   useEffect(() => {
     if (locationData && locationData.properties) {
+      storeUrls(locationData);
       const { relativeLocation, timeZone } = locationData.properties;
       if (relativeLocation && relativeLocation.properties) {
         setRelativeLocation(relativeLocation);
@@ -99,24 +128,59 @@ export default function Home() {
         setState(relativeLocation.properties.state);
       }
       setTimeZone(timeZone);
+    } else if (locationData && locationData.status === 404) {
+      setCity("");
+      setState("");
+      setForecastData(null);
     }
   }, [locationData]);
 
+
+
+  // Store Forecast Data
   useEffect(() => {
     if (forecastUrl) {
-      storeForecastData();
+      storeForecastData(forecastUrl);
     }
   }, [forecastUrl]);
 
+  // Store Forecast Hourly Data
   useEffect(() => {
-    console.log(forecastData);
+    if (forecastHourlyUrl) {
+      storeForecastHourlyData(forecastHourlyUrl);
+    }
+  }, [forecastHourlyUrl]);
+
+  // Store Forecast Zone Data
+  useEffect(() => {
+    if (forecastZoneUrl) {
+      storeForecastZoneData(forecastZoneUrl);
+    }
+  }, [forecastZoneUrl]);
+
+
+
+  // Store forecast Array
+  useEffect(() => {
+    if (forecastData) {
+      storeForecastArray(forecastData);
+    }
   }, [forecastData]);
 
-  const [isDay, setIsDay] = useState(true);
-
+  // Store forecast hourly Array
   useEffect(() => {
-    console.log(isDay);
-  }, [isDay]);
+    if (forecastHourlyData) {
+      storeForecastHourlyArray(forecastHourlyData);
+    }
+  }, [forecastHourlyData]);
+
+
+  // Store Forecast Zone Geometry Coordinates
+  useEffect(() => {
+    if (forecastData) {
+      storeForecastZoneGeometryCoordinatesArray(forecastData);
+    }
+  }, [forecastData])
 
   return (
     <div className="flex flex-col items-center">
@@ -124,8 +188,7 @@ export default function Home() {
         <GoogleMapComponent
           coordinates={coordinates}
           setCoordinates={setCoordinates}
-          storeLocationData={storeLocationData}
-          storeForecastData={storeForecastData}
+          forecastZoneGeometryCoordinates={forecastZoneGeometryCoordinates}
         />
         <DayNightToggle isDay={isDay} setIsDay={setIsDay} />
       </div>
@@ -136,9 +199,8 @@ export default function Home() {
       <div className="flex flex-col gap-10 justify-center w-full">
         {state && (
           <>
-            <ForecastBarChart forecast={forecastData} isDay={isDay} />
-            <ForecastTable forecast={forecastData} zeroOrOneValue={1} isDay={isDay} />
-
+            <ForecastBarChart forecast={forecastArray} isDay={isDay} />
+            <ForecastTable forecast={forecastArray} isDay={isDay} />
           </>
         )}
       </div>

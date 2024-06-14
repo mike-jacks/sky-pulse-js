@@ -1,7 +1,7 @@
 import { ForecastTableProps } from "./types";
 import Image from "next/image";
 
-export default function ForecastTable({forecast, zeroOrOneValue, isDay}: ForecastTableProps) {
+export default function ForecastTable({forecast, isDay}: ForecastTableProps) {
     const dayOrNightArray = forecast ? forecast.filter((f) => f.isDaytime === isDay) : null;
     const dayOrNightObj: {isDaytime: boolean} = dayOrNightArray ? dayOrNightArray[0] : null;
     const dayOrNight = dayOrNightObj ? dayOrNightObj.isDaytime : null;
