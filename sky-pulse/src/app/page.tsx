@@ -115,7 +115,7 @@ export default function Home() {
     if (coordinates) {
       storeLocationData(coordinates);
     }
-  }, [storeLocationData]);
+  }, [coordinates]);
 
   // Store URL information
   useEffect(() => {
@@ -140,21 +140,21 @@ export default function Home() {
     if (forecastUrl) {
       storeForecastData(forecastUrl);
     }
-  }, [storeForecastData]);
+  }, [forecastUrl]);
 
   // Store Forecast Hourly Data
   useEffect(() => {
     if (forecastHourlyUrl) {
       storeForecastHourlyData(forecastHourlyUrl);
     }
-  }, [storeForecastHourlyData]);
+  }, [forecastHourlyUrl]);
 
   // Store Forecast Zone Data
   useEffect(() => {
     if (forecastZoneUrl) {
       storeForecastZoneData(forecastZoneUrl);
     }
-  }, [storeForecastZoneData]);
+  }, [forecastZoneUrl]);
 
 
 
