@@ -9,7 +9,10 @@ const nextConfig = {
           pathname: '/icons/**'
         }
       ]
-    }
+    },
+    output: 'export',
+    basePath: '/sky-polse-js',
+    assetPrefix: '/sky-puls-js',
   };
   
   export default nextConfig;
