@@ -31,12 +31,15 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+        working-directory: sky-pulse
 
       - name: Build project
         run: npm run build
+        working-directory: sky-pulse
 
       - name: Export static site
         run: npm run export
+        working-directory: sky-pulse
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
