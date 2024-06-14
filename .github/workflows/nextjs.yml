@@ -29,6 +29,9 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Set enviornment variable
+        run: echo "NODE_ENV=production" >> $GITHUB_ENV
+
       - name: Install dependencies
         run: npm install
         working-directory: sky-pulse
