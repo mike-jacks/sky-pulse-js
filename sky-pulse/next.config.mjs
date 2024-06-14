@@ -3,7 +3,7 @@ const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig = {
   images: {
-    unoptimized: isProd ? false : true,
+    unoptimized: isProd ? true : true,
     remotePatterns: [
       {
         protocol: "https",
