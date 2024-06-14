@@ -30,7 +30,10 @@ jobs:
           node-version: "20"
 
       - name: Set enviornment variable
-        run: echo "NODE_ENV=production" >> $GITHUB_ENV
+        run: |
+          echo "NODE_ENV=production" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}" >> $GITHUB_ENV
+
 
       - name: Install dependencies
         run: npm install
