@@ -22,9 +22,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <header></header>
           <LoginCheck>
-            <main>
               {children}
-            </main>
           </LoginCheck>
       </body>
     </html>
