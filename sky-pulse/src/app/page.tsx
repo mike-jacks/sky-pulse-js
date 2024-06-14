@@ -135,8 +135,6 @@ export default function Home() {
     }
   }, [locationData]);
 
-
-
   // Store Forecast Data
   useEffect(() => {
     if (forecastUrl) {
