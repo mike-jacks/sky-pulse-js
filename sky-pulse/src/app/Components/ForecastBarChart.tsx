@@ -1,23 +1,8 @@
-import React, { useRef, useEffect } from 'react';
-import { Bar } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
+import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from "chart.js";
+import React, { useRef } from "react";
+import { Bar } from "react-chartjs-2";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 interface Period {
   number: number;
@@ -34,13 +19,12 @@ interface ForecastProps {
   isDay: boolean;
 }
 
-
 const ForecastBarChart: React.FC<ForecastProps> = ({ forecast, isDay }) => {
   const chartRef = useRef(null);
 
   const daytimeForecast = forecast.filter((period) => period.isDaytime);
-  const nighttimeForecast = forecast.filter((period) => !period.isDaytime)
-  
+  const nighttimeForecast = forecast.filter((period) => !period.isDaytime);
+
   const allTemperatures = forecast.map((period) => period.temperature);
 
   const minTemperature = Math.min(...allTemperatures);
@@ -53,11 +37,11 @@ const ForecastBarChart: React.FC<ForecastProps> = ({ forecast, isDay }) => {
     labels: currentForecast.map((period) => period.name),
     datasets: [
       {
-        label: 'Temperature',
+        label: "Temperature",
         data: currentForecastTemperatures,
-        backgroundColor: function(context: any) {
+        backgroundColor: function (context: any) {
           const chart = context.chart;
-          const {ctx, chartArea, scales} = chart;
+          const { ctx, chartArea, scales } = chart;
 
           if (!chartArea) {
             return null;
@@ -65,9 +49,9 @@ const ForecastBarChart: React.FC<ForecastProps> = ({ forecast, isDay }) => {
 
           const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
 
-          gradient.addColorStop(0, 'rgba(0, 191, 255, 0.8)'); // Deep sky blue
-          gradient.addColorStop(0.5, 'rgba(255, 215, 0, 0.8)'); // Yellow
-          gradient.addColorStop(0.8, 'rgba(255, 69, 0, 0.8)'); // Bright red/orange
+          gradient.addColorStop(0.1, "rgba(0, 131, 255, 0.8)"); // Deep sky blue
+          gradient.addColorStop(0.4, "rgba(255, 215, 0, 0.8)"); // Yellow
+          gradient.addColorStop(0.8, "rgba(255, 69, 0, 0.8)"); // Bright red/orange
 
           return gradient;
         },
@@ -79,32 +63,32 @@ const ForecastBarChart: React.FC<ForecastProps> = ({ forecast, isDay }) => {
     responsive: true,
     plugins: {
       legend: {
-        position: 'top' as const,
+        position: "top" as const,
       },
       title: {
         display: true,
-        text: 'Temperature Forecast',
+        text: "Temperature Forecast",
       },
     },
     scales: {
       y: {
-        min: minTemperature - 5,
-        max: maxTemperature + 5,
+        min: 20,
+        max: 120,
         title: {
           display: true,
-          text: 'Temperature',
+          text: "Temperature",
         },
       },
     },
   };
 
   return (
-  <div className="grid grid-cols-6 grid-rows-1 max-h-96">
-    <div className="col-start-2 col-span-4">
-    <Bar ref={chartRef} data={data} options={options} />
+    <div className="grid grid-cols-6 grid-rows-1 max-h-96">
+      <div className="col-start-2 col-span-4">
+        <Bar ref={chartRef} data={data} options={options} />
+      </div>
     </div>
-  </div>
-  )
+  );
 };
 
 export default ForecastBarChart;
